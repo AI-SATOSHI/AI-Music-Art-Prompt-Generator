@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Music & Art Prompt Generator</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #f0f0f0;
+            --primary-color: #00aaff;
+            --secondary-color: #2a2a2a;
+            --border-color: #444;
+            --hover-color: #0088cc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: var(--secondary-color);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        .input-section, .output-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .input-group {
+            background-color: var(--bg-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: #333;
+            color: var(--text-color);
+            font-size: 1rem;
+            resize: vertical;
+        }
+        
+        textarea#main-concept, textarea#cover-art-concept {
+            min-height: 100px;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            background-color: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .checkbox-item:hover {
+            background-color: #444;
+        }
+
+        .checkbox-item input {
+            margin-right: 0.5rem;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .generate-btn:hover {
+            background-color: var(--hover-color);
+        }
+        
+        .generate-btn:active {
+            transform: scale(0.98);
+        }
+
+        .output-box {
+            position: relative;
+        }
+
+        .output-box textarea {
+            height: 250px;
+            background-color: #2c2c2c;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.3s, background-color 0.3s;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--hover-color);
+            opacity: 1;
+        }
+        
+        .copy-btn.copied {
+            background-color: #28a745;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>AI Music & Art Prompt Generator</h1>
+
+        <div class="main-layout">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="main-concept">楽曲のコンセプト (Song Concept)</label>
+                    <textarea id="main-concept" placeholder="例：ネオン輝く未来都市を一人彷徨うアンドロイドの孤独と希望"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label for="cover-art-concept">カバー画像のコンセプト (Cover Art Concept)</label>
+                    <textarea id="cover-art-concept" placeholder="例：雨に濡れた路地に立つ、光る眼を持つアンドロイド。背景には巨大なホログラム広告。"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>音楽ジャンル (Genre)</label>
+                    <div class="checkbox-grid" id="genre-options">
+                        <!-- Options will be added by JS -->
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>BPM (Beats Per Minute)</label>
+                     <div class="checkbox-grid" id="bpm-options">
+                        <!-- Options will be added by JS -->
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>ムード (Mood)</label>
+                     <div class="checkbox-grid" id="mood-options">
+                        <!-- Options will be added by JS -->
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>使用楽器 (Instruments)</label>
+                     <div class="checkbox-grid" id="instrument-options">
+                        <!-- Options will be added by JS -->
+                    </div>
+                </div>
+
+                <button class="generate-btn" id="generate-btn">プロンプトとリリックを生成</button>
+            </div>
+
+            <div class="output-section">
+                <div class="output-box">
+                    <label for="suno-prompt">SunoAI Prompt (for Music)</label>
+                    <textarea id="suno-prompt" readonly placeholder="ここにSunoAI用のプロンプトが生成されます..."></textarea>
+                    <button class="copy-btn" data-target="suno-prompt">Copy</button>
+                </div>
+                <div class="output-box">
+                    <label for="leonardo-prompt">LeonardoAI Prompt (for Cover Art)</label>
+                    <textarea id="leonardo-prompt" readonly placeholder="ここにLeonardoAI用のプロンプトが生成されます..."></textarea>
+                    <button class="copy-btn" data-target="leonardo-prompt">Copy</button>
+                </div>
+                <div class="output-box">
+                    <label for="lyrics">リリック (Lyrics)</label>
+                    <textarea id="lyrics" readonly placeholder="ここに日本語のリリックが生成されます..."></textarea>
+                    <button class="copy-btn" data-target="lyrics">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const options = {
+                genres: [
+                    'J-Pop', 'K-Pop', 'Rock', 'Metal', 'Hip Hop', 'R&B', 'EDM', 'Synthwave', 'Future Bass', 'Lo-fi Hip Hop', 
+                    'Cinematic', 'Orchestral', 'Ambient', 'Cyberpunk', 'Kawaii Metal', 'City Pop', 'Future Funk', 'Phonk', 'Trap', 'Drill',
+                    'Hyperpop', 'Breakcore', 'Gamelan', 'Reggae', 'Ska', 'Jazz', 'Blues', 'Folk', 'Country', 'Classical'
+                ],
+                bpms: ['Slow (60-80)', 'Mid-tempo (90-120)', 'Fast (130-160)', 'Very Fast (170+)'],
+                moods: ['Nostalgic', 'Melancholic', 'Hopeful', 'Energetic', 'Lonely', 'Epic', 'Mysterious', 'Romantic', 'Aggressive', 'Calm', 'Anxious', 'Dreamy'],
+                instruments: [
+                    'Synthesizer', 'Piano', 'Electric Guitar', 'Acoustic Guitar', 'Drum Machine', 'Acoustic Drums', 'Strings', 'Bass', 'Vocaloid-style Vocals', 'Saxophone', 
+                    'Flute', 'Choir', 'Harp', 'Trumpet', 'Violin', 'Cello', 'Kalimba', 'Hang Drum', 'Sitar', 'Shamisen', 'Koto', 'Taiko Drums', '808 Bass', 'Theremin'
+                ]
+            };
+
+            function populateCheckboxes(containerId, items) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = ''; // Clear existing options
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'checkbox-item';
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.id = item.toLowerCase().replace(/ /g, '-');
+                    input.name = containerId;
+                    input.value = item;
+                    const label = document.createElement('label');
+                    label.htmlFor = input.id;
+                    label.textContent = item;
+                    
+                    div.appendChild(input);
+                    div.appendChild(label);
+                    container.appendChild(div);
+                });
+            }
+
+            populateCheckboxes('genre-options', options.genres);
+            populateCheckboxes('bpm-options', options.bpms);
+            populateCheckboxes('mood-options', options.moods);
+            populateCheckboxes('instrument-options', options.instruments);
+
+            const generateBtn = document.getElementById('generate-btn');
+            const conceptInput = document.getElementById('main-concept');
+            const coverArtConceptInput = document.getElementById('cover-art-concept');
+            const sunoOutput = document.getElementById('suno-prompt');
+            const leonardoOutput = document.getElementById('leonardo-prompt');
+            const lyricsOutput = document.getElementById('lyrics');
+
+            function getSelectedValues(name) {
+                return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+            }
+
+            generateBtn.addEventListener('click', () => {
+                const concept = conceptInput.value.trim();
+                if (!concept) {
+                    alert('楽曲のコンセプトを入力してください。');
+                    return;
+                }
+                const coverArtConcept = coverArtConceptInput.value.trim() || concept; // Fallback to main concept
+
+                const genres = getSelectedValues('genre-options');
+                const bpms = getSelectedValues('bpm-options');
+                const moods = getSelectedValues('mood-options');
+                const instruments = getSelectedValues('instrument-options');
+
+                // --- SunoAI Prompt Generation ---
+                let sunoPrompt = `Create a song about: ${concept}. \n\n`;
+                if (genres.length > 0) {
+                    sunoPrompt += `The overall style should be a unique fusion of ${genres.join(', ')}. `;
+                } else {
+                    sunoPrompt += `The overall style should be original and hard to classify. `;
+                }
+                if (moods.length > 0) {
+                    sunoPrompt += `It should have a ${moods.join(', ')} mood, creating a deep and immersive atmosphere. `;
+                }
+                if (bpms.length > 0) {
+                    sunoPrompt += `The tempo is ${bpms.join('/')}. `;
+                }
+                if (instruments.length > 0) {
+                    sunoPrompt += `Key instruments include ${instruments.join(', ')}, blending electronic and organic sounds to create a unique texture. `;
+                }
+                sunoPrompt += `The song structure should be dynamic, with a clear intro, building verses, a powerful and memorable chorus, an emotional bridge, a distinct instrumental solo, and a fading outro. `;
+                sunoPrompt += `Imagine a soundtrack for a film exploring themes of solitude, technology, and the search for meaning in a futuristic, neon-lit metropolis. The melody should be haunting yet beautiful, with a strong emotional core. The production must be clean, polished, and wide in stereo space. Avoid any direct references to existing commercial music or artists. Focus on creating a unique sonic identity.`;
+                sunoOutput.value = sunoPrompt.slice(0, 1000);
+
+                // --- LeonardoAI Prompt Generation ---
+                let leonardoPrompt = `Album cover art for a song. The concept is: "${coverArtConcept}". \n\n`;
+                leonardoPrompt += `Style: digital painting, cinematic, hyper-detailed, epic scale, emotionally resonant. `;
+                leonardoPrompt += `The scene should visually represent the core themes from the concept. `;
+                if (moods.length > 0) {
+                     leonardoPrompt += `The color palette should be carefully selected to evoke a ${moods.join(' and ')} atmosphere, using a mix of dark, moody tones and vibrant, electric highlights. `;
+                }
+                leonardoPrompt += `Lighting: dramatic, high contrast, volumetric lighting, with strong light sources casting long, soft shadows, emphasizing the feeling of both wonder and isolation. `;
+                leonardoPrompt += `Composition: rule of thirds, dynamic angles, focus on a central character or symbolic object that embodies the song's narrative. The overall feeling must be professional, evocative, and of the highest quality. `;
+                leonardoPrompt += `Keywords: masterpiece, 8k, ultra-realistic, trending on ArtStation, cinematic lighting, emotional, atmospheric perspective, no text, no typography.`;
+                leonardoOutput.value = leonardoPrompt.slice(0, 1000);
+
+                // --- Lyrics Generation (Japanese) ---
+                let lyrics = `[Intro]\n(静かなシンセサイザーのアルペジオ...)\n(遠くで響く雨音...)\n\n`;
+                lyrics += `[Verse 1]\nガラスの塔の森を抜け\n冷たい光が頬を刺す\nアスファルトに映る僕は誰？\n問いかけてもノイズが混じるだけ\n\n`;
+                lyrics += `[Pre-Chorus]\nデータ化された空の下\n失くしたはずの心が痛む\nホログラムの笑顔たち\n温もりさえもプログラム\n\n`;
+                lyrics += `[Chorus]\nネオンの川を泳いで\n君という名の光を探してる\nこの孤独が僕の証なら\nせめて未来を照らし出して\n終わらない夜の真ん中で\n僕は歌う 希望のメロディ\n\n`;
+                lyrics += `[Verse 2]\n忘れられた路地裏で\n錆びついた夢のかけらを見た\n誰かが残した古い歌\n懐かしい痛みが響いた\n\n`;
+                lyrics += `[Pre-Chorus]\n完璧すぎるこの世界で\n不完全な愛を求めてる\nロジックだけじゃ解けない\n心の回路がショートしてく\n\n`;
+                lyrics += `[Chorus]\nネオンの川を泳いで\n君という名の光を探してる\nこの孤独が僕の証なら\nせめて未来を照らし出して\n終わらない夜の真ん中で\n僕は歌う 希望のメロディ\n\n`;
+                lyrics += `[Bridge]\nもしもこの声が届くなら\nもしもこの涙に意味があるなら\nシステムの壁を越えて\n本当の君に会いたい\n(静寂...そして壮大なストリングスが入る)\n\n`;
+                if (instruments.length > 0) {
+                    lyrics += `[Instrumental Break]\n(${instruments.join(', ')}が絡み合う、感情的な間奏)\n\n`;
+                } else {
+                    lyrics += `[Instrumental Break]\n(感情的な間奏)\n\n`;
+                }
+                lyrics += `[Chorus]\nネオンの海に抱かれて\n今、確かな光を見つけた\nこの孤独は僕だけのものじゃない\n君へと続く道標だった\n明けない夜の向こう側で\n君と歌う 新しいメロディ\n\n`;
+                lyrics += `[Outro]\n(雨は上がり、静かなピアノの音色...)\n(遠くに朝日の気配...)\n未来はここから...\n始まる...\n`;
+                lyricsOutput.value = lyrics;
+            });
+
+            // --- Copy Button Logic ---
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.dataset.target;
+                    const textarea = document.getElementById(targetId);
+                    textarea.select();
+                    navigator.clipboard.writeText(textarea.value).then(() => {
+                        button.textContent = 'Copied!';
+                        button.classList.add('copied');
+                        setTimeout(() => {
+                            button.textContent = 'Copy';
+                            button.classList.remove('copied');
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Copy failed', err);
+                    });
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
